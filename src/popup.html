@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bimetric Unit Converter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            width: 250px;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="flex items-center justify-between mb-4">
+        <h1 class="text-lg font-bold text-gray-800">Bimetric Unit Converter</h1>
+        <img src="icons/icon48.png" alt="Icon" class="w-8 h-8">
+    </div>
+
+    <div class="space-y-3">
+        <p class="text-sm text-gray-600">Select conversion mode:</p>
+        
+        <select id="mode" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            <option value="off">Off</option>
+            <option value="metric_to_imperial">Metric to Imperial</option>
+            <option value="imperial_to_metric">Imperial to Metric</option>
+        </select>
+
+        <button id="convertBtn" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 shadow-md">
+            Convert This Page
+        </button>
+        <button id="resetBtn" class="w-full bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-colors duration-200 mt-2">
+            Reset Conversions
+        </button>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>
