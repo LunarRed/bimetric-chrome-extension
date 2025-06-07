@@ -113,7 +113,6 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 ### Permissions
 - `activeTab`: Access current webpage content for conversion
 - `storage`: Save user preferences and conversion mode
-- `scripting`: Inject conversion logic into webpages
 
 ## Development
 
@@ -165,6 +164,11 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 MIT License - see LICENSE file for details
 
 ## Version History
+
+### v1.2.1
+- **Permission Optimization**: Removed unused `scripting` permission for Chrome Web Store compliance
+- **Minimal Permissions**: Now only requests essential permissions (`storage`, `activeTab`)
+- **Improved Security**: Reduces extension attack surface by removing unnecessary permissions
 
 ### v1.2.0
 - **Quote Mark Support**: Added recognition for ' (feet) and " (inches) notation
