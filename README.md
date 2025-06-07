@@ -13,7 +13,12 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
   - **Weight**: g, kg ↔ oz, lb  
   - **Volume**: ml, l ↔ fl oz, gal
   - **Temperature**: °C ↔ °F
-- **Smart Detection**: Recognizes various unit formats and abbreviations
+- **Smart Detection**: Recognizes various unit formats and abbreviations including dimension patterns (e.g., "15.7 x 11.8 inch")
+- **Customizable Notifications**: 
+  - 80% transparent notifications with backdrop blur
+  - Adjustable duration (1-10 seconds)
+  - Size options (Normal/Smaller)
+- **Auto-conversion**: Automatically convert units when pages load (optional)
 - **Easy Toggle**: Switch between conversion modes or turn off completely
 - **Clean Reset**: Remove all conversions to restore original page content
 
@@ -36,20 +41,26 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
    - **Metric to Imperial**: Converts metric units to imperial equivalents
    - **Imperial to Metric**: Converts imperial units to metric equivalents  
    - **Off**: Disables conversion
-3. Click "Convert This Page" to apply conversions to the current webpage
-4. Click "Reset Conversions" to remove all conversions and restore original content
+3. **Optional**: Adjust settings by clicking "Settings":
+   - **Auto-convert**: Automatically convert units when pages load
+   - **Notification duration**: Set how long conversion notifications appear (1-10 seconds)
+   - **Notification size**: Choose between Normal and Smaller notification sizes
+4. Click "Convert This Page" to apply conversions to the current webpage
+5. Click "Reset Conversions" to remove all conversions and restore original content
 
 ### Example Conversions
 
 **Metric to Imperial:**
 - 100 km → 100 km *(62.14 mi)*
 - 2.5 m → 2.5 m *(8.20 ft)*
+- 15.7 x 11.8 inch → 15.7 x 11.8 inch *(398.78 x 299.72 mm)*
 - 500 ml → 500 ml *(16.91 fl oz)*
 - 25°C → 25°C *(77°F)*
 
 **Imperial to Metric:**
 - 50 mph → 50 mph *(80.45 km/h)*
 - 6 ft → 6 ft *(1.83 m)*
+- 40 x 30 cm → 40 x 30 cm *(15.75 x 11.81 in)*
 - 1 gallon → 1 gallon *(3.79 l)*
 - 72°F → 72°F *(22°C)*
 
@@ -85,8 +96,10 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 ### Architecture
 - **Manifest V3**: Modern Chrome extension format
 - **Content Scripts**: Processes webpage content for unit detection and conversion
-- **Background Scripts**: Manages extension state and user preferences  
-- **Popup Interface**: Provides user controls and settings
+- **Smart Pattern Recognition**: Handles both individual units and dimension patterns (e.g., "A x B units")
+- **Overlap Prevention**: Prevents double conversion of dimension patterns
+- **Storage Integration**: Persists user preferences and settings
+- **Popup Interface**: Provides user controls and expandable settings panel
 
 ### Permissions
 - `activeTab`: Access current webpage content for conversion
@@ -99,10 +112,11 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 ```
 src/
 ├── manifest.json       # Extension configuration
-├── content.js         # Main conversion logic
+├── content.js         # Main conversion logic and pattern recognition
 ├── popup.html         # Extension popup interface  
-├── popup.js          # Popup functionality
-├── styles.css        # Conversion highlighting styles
+├── popup.js          # Popup functionality and settings management
+├── popup-styles.css  # Popup styling
+├── styles.css        # Content script styles and animations
 └── icons/            # Extension icons
     ├── icon16.png
     ├── icon48.png
@@ -142,6 +156,14 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 MIT License - see LICENSE file for details
 
 ## Version History
+
+### v1.1.0
+- **Enhanced Notifications**: 80% transparent notifications with backdrop blur
+- **Customizable Settings**: Duration (1-10 seconds) and size (Normal/Smaller) options  
+- **Dimension Pattern Support**: Smart recognition of patterns like "15.7 x 11.8 inch"
+- **Double Conversion Fix**: Prevents dimension patterns from being converted twice
+- **Auto-conversion**: Optional automatic conversion when pages load
+- **Expandable Settings Panel**: Collapsible settings in popup interface
 
 ### v1.0.0
 - Initial release
