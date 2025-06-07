@@ -13,7 +13,10 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
   - **Weight**: g, kg ↔ oz, lb  
   - **Volume**: ml, l ↔ fl oz, gal
   - **Temperature**: °C ↔ °F
-- **Smart Detection**: Recognizes various unit formats and abbreviations including dimension patterns (e.g., "15.7 x 11.8 inch")
+- **Smart Detection**: Recognizes various unit formats and abbreviations including:
+  - Dimension patterns (e.g., "15.7 x 11.8 inch")  
+  - Quote notation for feet/inches (e.g., 6'2" or Georgetown 63" lamp)
+  - Smart unit scaling (1524mm → 152.4cm, 2000g → 2kg)
 - **Customizable Notifications**: 
   - 80% transparent notifications with backdrop blur
   - Adjustable duration (1-10 seconds)
@@ -53,13 +56,17 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 **Metric to Imperial:**
 - 100 km → 100 km *(62.14 mi)*
 - 2.5 m → 2.5 m *(8.20 ft)*
+- 152.4 cm → 152.4 cm *(5.00 ft)*
+- 1524 mm → 152.4 cm *(5.00 ft)* *[smart scaling]*
 - 15.7 x 11.8 inch → 15.7 x 11.8 inch *(398.78 x 299.72 mm)*
 - 500 ml → 500 ml *(16.91 fl oz)*
 - 25°C → 25°C *(77°F)*
 
 **Imperial to Metric:**
 - 50 mph → 50 mph *(80.45 km/h)*
-- 6 ft → 6 ft *(1.83 m)*
+- 6 ft → 6 ft *(1.83 m)*  
+- 6'2" → 6'2" *(187.96 cm)*
+- Georgetown 63" lamp → Georgetown 63" *(160.02 cm)* lamp
 - 40 x 30 cm → 40 x 30 cm *(15.75 x 11.81 in)*
 - 1 gallon → 1 gallon *(3.79 l)*
 - 72°F → 72°F *(22°C)*
@@ -97,6 +104,8 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 - **Manifest V3**: Modern Chrome extension format
 - **Content Scripts**: Processes webpage content for unit detection and conversion
 - **Smart Pattern Recognition**: Handles both individual units and dimension patterns (e.g., "A x B units")
+- **Quote Notation Support**: Recognizes ' (feet) and " (inches) in various contexts
+- **Smart Unit Scaling**: Automatically scales to appropriate units (mm→cm, g→kg, etc.)
 - **Overlap Prevention**: Prevents double conversion of dimension patterns
 - **Storage Integration**: Persists user preferences and settings
 - **Popup Interface**: Provides user controls and expandable settings panel
@@ -156,6 +165,12 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 MIT License - see LICENSE file for details
 
 ## Version History
+
+### v1.2.0
+- **Quote Mark Support**: Added recognition for ' (feet) and " (inches) notation
+- **Smart Unit Scaling**: Automatic scaling to appropriate units (1524mm → 152.4cm, 2000g → 2kg)
+- **Enhanced Pattern Recognition**: Better handling of mixed quote/unit contexts
+- **Improved Conversion Logic**: More accurate dimension pattern processing
 
 ### v1.1.0
 - **Enhanced Notifications**: 80% transparent notifications with backdrop blur

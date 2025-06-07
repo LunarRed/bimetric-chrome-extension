@@ -14,14 +14,44 @@ const conversions = {
     l: (val) => ({ value: val / 3.785, unit: 'gal' }),
     '°c': (val) => ({ value: (val * 9/5) + 32, unit: '°F' }),
 
-    // Imperial to Metric
-    in: (val) => ({ value: val * 25.4, unit: 'mm' }),
-    ft: (val) => ({ value: val / 3.281, unit: 'm' }),
-    yd: (val) => ({ value: val / 1.094, unit: 'm' }),
+    // Imperial to Metric with smart unit scaling
+    in: (val) => {
+        const mm = val * 25.4;
+        if (mm >= 1000) {
+            return { value: mm / 10, unit: 'cm' }; // Convert to cm if >= 1000mm
+        }
+        return { value: mm, unit: 'mm' };
+    },
+    ft: (val) => {
+        const m = val / 3.281;
+        if (m >= 1000) {
+            return { value: m / 1000, unit: 'km' }; // Convert to km if >= 1000m
+        }
+        return { value: m, unit: 'm' };
+    },
+    yd: (val) => {
+        const m = val / 1.094;
+        if (m >= 1000) {
+            return { value: m / 1000, unit: 'km' }; // Convert to km if >= 1000m
+        }
+        return { value: m, unit: 'm' };
+    },
     mi: (val) => ({ value: val * 1.609, unit: 'km' }),
-    oz: (val) => ({ value: val * 28.35, unit: 'g' }),
+    oz: (val) => {
+        const g = val * 28.35;
+        if (g >= 1000) {
+            return { value: g / 1000, unit: 'kg' }; // Convert to kg if >= 1000g
+        }
+        return { value: g, unit: 'g' };
+    },
     lb: (val) => ({ value: val / 2.205, unit: 'kg' }),
-    'fl oz': (val) => ({ value: val * 29.574, unit: 'ml' }),
+    'fl oz': (val) => {
+        const ml = val * 29.574;
+        if (ml >= 1000) {
+            return { value: ml / 1000, unit: 'l' }; // Convert to l if >= 1000ml
+        }
+        return { value: ml, unit: 'ml' };
+    },
     gal: (val) => ({ value: val * 3.785, unit: 'l' }),
     '°f': (val) => ({ value: (val - 32) * 5/9, unit: '°C' }),
 };
@@ -53,16 +83,26 @@ const patterns = {
     ],
     imperial_to_metric: [
         // Dimension patterns (process these first)
-        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(in|inch|inches|")\b/gi, unit: 'in', isDimension: true },
-        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(in|inch|inches|")\b/gi, unit: 'in', isDimension: true },
-        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(ft|foot|feet|')\b/gi, unit: 'ft', isDimension: true },
-        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(ft|foot|feet|')\b/gi, unit: 'ft', isDimension: true },
+        // Quote-based dimension patterns for mixed formats like 'H X W X D'
+        { regex: /(\d*\.?\d+)"\s*[A-Z]\s*[Xx]\s*(\d*\.?\d+)"\s*[A-Z]\s*[Xx]\s*(\d*\.?\d+)"\s*[A-Z]/gi, unit: 'in', isDimension: true },
+        { regex: /(\d*\.?\d+)"\s*[A-Z]\s*[Xx]\s*(\d*\.?\d+)"\s*[A-Z]/gi, unit: 'in', isDimension: true },
+        { regex: /(\d*\.?\d+)'\s*[A-Z]\s*[Xx]\s*(\d*\.?\d+)'\s*[A-Z]\s*[Xx]\s*(\d*\.?\d+)'\s*[A-Z]/gi, unit: 'ft', isDimension: true },
+        { regex: /(\d*\.?\d+)'\s*[A-Z]\s*[Xx]\s*(\d*\.?\d+)'\s*[A-Z]/gi, unit: 'ft', isDimension: true },
+        
+        // Standard dimension patterns
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(in|inch|inches)\b/gi, unit: 'in', isDimension: true },
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(in|inch|inches)\b/gi, unit: 'in', isDimension: true },
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(ft|foot|feet)\b/gi, unit: 'ft', isDimension: true },
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(ft|foot|feet)\b/gi, unit: 'ft', isDimension: true },
         { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(yd|yards?)\b/gi, unit: 'yd', isDimension: true },
         { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(yd|yards?)\b/gi, unit: 'yd', isDimension: true },
         
         // Regular single unit patterns
-        { regex: /(\d*\.?\d+)\s*(in|inch|inches|")\b/gi, unit: 'in' },
-        { regex: /(\d*\.?\d+)\s*(ft|foot|feet|')\b/gi, unit: 'ft' },
+        // Quote-based patterns - handle quotes directly after numbers
+        { regex: /(\d*\.?\d+)"/g, unit: 'in' },  // Double quote " = inches
+        { regex: /(\d*\.?\d+)'(?!")/g, unit: 'ft' }, // Single quote ' = feet (but not if followed by ")
+        { regex: /(\d*\.?\d+)\s*(in|inch|inches)\b/gi, unit: 'in' },
+        { regex: /(\d*\.?\d+)\s*(ft|foot|feet)\b/gi, unit: 'ft' },
         { regex: /(\d*\.?\d+)\s*(yd|yards?)\b/gi, unit: 'yd' },
         { regex: /(\d*\.?\d+)\s*(mi|miles?)\b/gi, unit: 'mi' },
         { regex: /(\d*\.?\d+)\s*(oz|ounces?)\b/gi, unit: 'oz' },
@@ -127,16 +167,29 @@ function performConversion(mode) {
                 const conversionFn = conversions[p.unit.toLowerCase()];
                 if (!conversionFn) return match;
 
-                // Handle dimension patterns: "A x B unit" or "A x B x C unit"
-                const unitStr = args[args.length - 3]; // Unit is always 3rd from end
+                // Handle different dimension pattern formats
                 const values = [];
                 
-                // Extract all numeric values (excluding unit, offset, and string)
-                for (let i = 0; i < args.length - 3; i++) {
-                    if (args[i] !== undefined) {
-                        const val = parseFloat(args[i]);
-                        if (!isNaN(val)) {
-                            values.push(val);
+                // For quote-based patterns like "1.125" H X 10.25" W X 10.25" D"
+                if (match.includes('"') && match.includes(' X ')) {
+                    // Extract all numeric values from the match
+                    for (let i = 0; i < args.length - 2; i++) {
+                        if (args[i] !== undefined && args[i] !== "") {
+                            const val = parseFloat(args[i]);
+                            if (!isNaN(val)) {
+                                values.push(val);
+                            }
+                        }
+                    }
+                } else {
+                    // Standard dimension patterns: "A x B unit" or "A x B x C unit"
+                    // Extract all numeric values (excluding unit, offset, and string)
+                    for (let i = 0; i < args.length - 3; i++) {
+                        if (args[i] !== undefined) {
+                            const val = parseFloat(args[i]);
+                            if (!isNaN(val)) {
+                                values.push(val);
+                            }
                         }
                     }
                 }
