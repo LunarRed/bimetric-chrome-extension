@@ -239,61 +239,90 @@ function resetConversions() {
 // --- Notification Banner ---
 
 function showConversionNotification(mode) {
-    // Remove any existing notification
-    const existingNotification = document.getElementById('bimetric-notification');
-    if (existingNotification) {
-        existingNotification.remove();
-    }
-
-    const notification = document.createElement('div');
-    notification.id = 'bimetric-notification';
-    notification.style.cssText = `
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        background: #10b981;
-        color: white;
-        padding: 12px 16px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        z-index: 10000;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        max-width: 280px;
-        animation: slideInRight 0.3s ease-out;
-    `;
-
-    // Add icon
-    const icon = document.createElement('img');
-    icon.src = chrome.runtime.getURL('icons/icon48.png');
-    icon.style.cssText = 'width: 20px; height: 20px; flex-shrink: 0;';
-    notification.appendChild(icon);
-
-    // Add text based on conversion mode
-    const text = document.createElement('span');
-    if (mode === 'metric_to_imperial') {
-        text.textContent = 'Metric units found and converted.';
-    } else {
-        text.textContent = 'Imperial units found and converted.';
-    }
-    notification.appendChild(text);
-
-    document.body.appendChild(notification);
-
-    // Auto-remove after 4 seconds
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.style.animation = 'slideOutRight 0.3s ease-out';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.remove();
-                }
-            }, 300);
+    // Get notification settings from storage
+    chrome.storage.sync.get(['notificationDuration', 'notificationSize'], (result) => {
+        const duration = (result.notificationDuration !== undefined ? result.notificationDuration : 4) * 1000; // Convert to milliseconds
+        const size = result.notificationSize !== undefined ? result.notificationSize : 'normal';
+        
+        // Remove any existing notification
+        const existingNotification = document.getElementById('bimetric-notification');
+        if (existingNotification) {
+            existingNotification.remove();
         }
-    }, 4000);
+
+        const notification = document.createElement('div');
+        notification.id = 'bimetric-notification';
+        
+        // Base styles
+        let baseStyles = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(16, 185, 129, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 10000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: slideInRight 0.3s ease-out;
+        `;
+        
+        // Size-specific styles
+        if (size === 'smaller') {
+            baseStyles += `
+                padding: 8px 12px;
+                font-size: 12px;
+                max-width: 260px;
+                white-space: nowrap;
+            `;
+        } else {
+            baseStyles += `
+                padding: 12px 16px;
+                font-size: 14px;
+                max-width: 280px;
+            `;
+        }
+        
+        notification.style.cssText = baseStyles;
+
+        // Add icon
+        const icon = document.createElement('img');
+        icon.src = chrome.runtime.getURL('icons/icon48.png');
+        if (size === 'smaller') {
+            icon.style.cssText = 'width: 16px; height: 16px; flex-shrink: 0;';
+        } else {
+            icon.style.cssText = 'width: 20px; height: 20px; flex-shrink: 0;';
+        }
+        notification.appendChild(icon);
+
+        // Add text based on conversion mode
+        const text = document.createElement('span');
+        if (mode === 'metric_to_imperial') {
+            text.textContent = 'Metric units found and converted.';
+        } else {
+            text.textContent = 'Imperial units found and converted.';
+        }
+        notification.appendChild(text);
+
+        document.body.appendChild(notification);
+
+        // Auto-remove after specified duration
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 300);
+            }
+        }, duration);
+    });
 }
 
 // --- Auto-conversion on page load ---

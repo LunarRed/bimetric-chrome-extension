@@ -46,6 +46,31 @@
                     <div class="toggle-dot"></div>
                 </div>
             </div>
+            
+            <div class="space-y-2">
+                <label for="notificationDuration" class="text-sm text-gray-700">
+                    Notification duration (seconds)
+                </label>
+                <select id="notificationDuration" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus-ring transition text-sm">
+                    <option value="1">1 second</option>
+                    <option value="2">2 seconds</option>
+                    <option value="3">3 seconds</option>
+                    <option value="4">4 seconds (default)</option>
+                    <option value="5">5 seconds</option>
+                    <option value="8">8 seconds</option>
+                    <option value="10">10 seconds</option>
+                </select>
+            </div>
+            
+            <div class="space-y-2">
+                <label for="notificationSize" class="text-sm text-gray-700">
+                    Notification size
+                </label>
+                <select id="notificationSize" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus-ring transition text-sm">
+                    <option value="normal">Normal</option>
+                    <option value="smaller">Smaller</option>
+                </select>
+            </div>
         </div>
     </div>
     <script src="popup.js"></script>

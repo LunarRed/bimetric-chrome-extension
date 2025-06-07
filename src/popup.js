@@ -10,9 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const autoConvertToggle = document.getElementById('autoConvert');
     const toggleBg = document.querySelector('.toggle-bg');
     const toggleDot = document.querySelector('.toggle-dot');
+    const notificationDurationSelect = document.getElementById('notificationDuration');
+    const notificationSizeSelect = document.getElementById('notificationSize');
 
     // Load saved settings
-    chrome.storage.sync.get(['conversionMode', 'autoConvert', 'settingsExpanded'], (result) => {
+    chrome.storage.sync.get(['conversionMode', 'autoConvert', 'settingsExpanded', 'notificationDuration', 'notificationSize'], (result) => {
         // Set conversion mode
         if (result.conversionMode) {
             modeSelect.value = result.conversionMode;
@@ -26,6 +28,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const autoConvert = result.autoConvert !== undefined ? result.autoConvert : true;
         autoConvertToggle.checked = autoConvert;
         updateToggleVisual(autoConvert);
+
+        // Set notification duration (defaults to 4 seconds)
+        const notificationDuration = result.notificationDuration !== undefined ? result.notificationDuration : 4;
+        notificationDurationSelect.value = notificationDuration;
+
+        // Set notification size (defaults to normal)
+        const notificationSize = result.notificationSize !== undefined ? result.notificationSize : 'normal';
+        notificationSizeSelect.value = notificationSize;
 
         // Set settings expansion state (expanded first time, then collapsed)
         const settingsExpanded = result.settingsExpanded !== undefined ? result.settingsExpanded : true;
@@ -55,6 +65,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     toggleBg.addEventListener('click', handleToggleClick);
+
+    // Notification duration change handler
+    notificationDurationSelect.addEventListener('change', () => {
+        const duration = parseInt(notificationDurationSelect.value);
+        chrome.storage.sync.set({ notificationDuration: duration });
+    });
+
+    // Notification size change handler
+    notificationSizeSelect.addEventListener('change', () => {
+        const size = notificationSizeSelect.value;
+        chrome.storage.sync.set({ notificationSize: size });
+    });
 
     function updateToggleVisual(isActive) {
         if (isActive) {
