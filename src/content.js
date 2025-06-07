@@ -30,6 +30,17 @@ const conversions = {
 
 const patterns = {
     metric_to_imperial: [
+        // Dimension patterns (process these first)
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(mm|millimeters?)\b/gi, unit: 'mm', isDimension: true },
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(mm|millimeters?)\b/gi, unit: 'mm', isDimension: true },
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(cm|centimeters?)\b/gi, unit: 'cm', isDimension: true },
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(cm|centimeters?)\b/gi, unit: 'cm', isDimension: true },
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(m|meters?)\b/gi, unit: 'm', isDimension: true },
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(m|meters?)\b/gi, unit: 'm', isDimension: true },
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(km|kilometers?)\b/gi, unit: 'km', isDimension: true },
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(km|kilometers?)\b/gi, unit: 'km', isDimension: true },
+        
+        // Regular single unit patterns
         { regex: /(\d*\.?\d+)\s*(mm|millimeters?)\b/gi, unit: 'mm' },
         { regex: /(\d*\.?\d+)\s*(cm|centimeters?)\b/gi, unit: 'cm' },
         { regex: /(\d*\.?\d+)\s*(m|meters?)\b/gi, unit: 'm' },
@@ -41,6 +52,15 @@ const patterns = {
         { regex: /(-?\d*\.?\d+)\s*°\s*[cC]\b/g, unit: '°c' }
     ],
     imperial_to_metric: [
+        // Dimension patterns (process these first)
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(in|inch|inches|")\b/gi, unit: 'in', isDimension: true },
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(in|inch|inches|")\b/gi, unit: 'in', isDimension: true },
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(ft|foot|feet|')\b/gi, unit: 'ft', isDimension: true },
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(ft|foot|feet|')\b/gi, unit: 'ft', isDimension: true },
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(yd|yards?)\b/gi, unit: 'yd', isDimension: true },
+        { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(yd|yards?)\b/gi, unit: 'yd', isDimension: true },
+        
+        // Regular single unit patterns
         { regex: /(\d*\.?\d+)\s*(in|inch|inches|")\b/gi, unit: 'in' },
         { regex: /(\d*\.?\d+)\s*(ft|foot|feet|')\b/gi, unit: 'ft' },
         { regex: /(\d*\.?\d+)\s*(yd|yards?)\b/gi, unit: 'yd' },
@@ -74,19 +94,101 @@ function performConversion(mode) {
 
     let conversionsCount = 0;
 
+    // Separate dimension patterns from regular patterns
+    const dimensionPatterns = patterns[mode].filter(p => p.isDimension);
+    const regularPatterns = patterns[mode].filter(p => !p.isDimension);
+
     // Process collected nodes
     for (const node of nodesToProcess) {
         let content = node.nodeValue;
         let hasChanged = false;
 
-        patterns[mode].forEach(p => {
-            content = content.replace(p.regex, (match, valueStr, unitStr) => {
-                const originalValue = parseFloat(valueStr);
-                if (isNaN(originalValue)) return match;
+        // First, identify and mark all dimension pattern locations to avoid double processing
+        const dimensionLocations = [];
+        dimensionPatterns.forEach(p => {
+            const regex = new RegExp(p.regex.source, p.regex.flags);
+            let match;
+            while ((match = regex.exec(content)) !== null) {
+                dimensionLocations.push({
+                    start: match.index,
+                    end: match.index + match[0].length,
+                    pattern: p
+                });
+                if (!p.regex.global) break;
+            }
+        });
+
+        // Sort dimension locations by start position
+        dimensionLocations.sort((a, b) => a.start - b.start);
+
+        // Process dimension patterns first
+        dimensionPatterns.forEach(p => {
+            content = content.replace(p.regex, (match, ...args) => {
+                const conversionFn = conversions[p.unit.toLowerCase()];
+                if (!conversionFn) return match;
+
+                // Handle dimension patterns: "A x B unit" or "A x B x C unit"
+                const unitStr = args[args.length - 3]; // Unit is always 3rd from end
+                const values = [];
+                
+                // Extract all numeric values (excluding unit, offset, and string)
+                for (let i = 0; i < args.length - 3; i++) {
+                    if (args[i] !== undefined) {
+                        const val = parseFloat(args[i]);
+                        if (!isNaN(val)) {
+                            values.push(val);
+                        }
+                    }
+                }
+                
+                if (values.length === 0) return match;
+                
+                // Convert all values
+                const convertedValues = values.map(val => {
+                    const { value: convertedValue, unit: convertedUnit } = conversionFn(val);
+                    return {
+                        original: val,
+                        converted: Number(convertedValue.toFixed(2)),
+                        unit: convertedUnit
+                    };
+                });
+                
+                // Build the converted dimension string
+                const convertedDimStr = convertedValues.map(v => v.converted).join(' x ') + ' ' + convertedValues[0].unit;
+                
+                hasChanged = true;
+                conversionsCount++;
+                return `${match} <mark class="${MARK_TAG_CLASS}">(${convertedDimStr})</mark>`;
+            });
+        });
+
+        // Then, process regular patterns but skip any that overlap with dimension locations
+        regularPatterns.forEach(p => {
+            const originalContent = node.nodeValue; // Use original content for position checking
+            
+            content = content.replace(p.regex, (match, ...args) => {
+                const offset = args[args.length - 2];
+                const matchEnd = offset + match.length;
+                
+                // Check if this match overlaps with any dimension pattern location
+                const overlapsWithDimension = dimensionLocations.some(dim => {
+                    return (offset >= dim.start && offset < dim.end) || 
+                           (matchEnd > dim.start && matchEnd <= dim.end) ||
+                           (offset < dim.start && matchEnd > dim.end);
+                });
+                
+                if (overlapsWithDimension) {
+                    return match; // Skip this match as it overlaps with a dimension pattern
+                }
                 
                 const conversionFn = conversions[p.unit.toLowerCase()];
                 if (!conversionFn) return match;
 
+                // Handle regular single value patterns
+                const valueStr = args[0];
+                const originalValue = parseFloat(valueStr);
+                if (isNaN(originalValue)) return match;
+                
                 const { value: convertedValue, unit: convertedUnit } = conversionFn(originalValue);
                 const formattedValue = Number(convertedValue.toFixed(2));
                 
