@@ -72,6 +72,8 @@ function performConversion(mode) {
         nodesToProcess.push(textNode);
     }
 
+    let conversionsCount = 0;
+
     // Process collected nodes
     for (const node of nodesToProcess) {
         let content = node.nodeValue;
@@ -89,6 +91,7 @@ function performConversion(mode) {
                 const formattedValue = Number(convertedValue.toFixed(2));
                 
                 hasChanged = true;
+                conversionsCount++;
                 return `${match} <mark class="${MARK_TAG_CLASS}">(${formattedValue} ${convertedUnit})</mark>`;
             });
         });
@@ -99,6 +102,13 @@ function performConversion(mode) {
             node.parentNode.replaceChild(newElement, node);
         }
     }
+
+    // Show notification banner if conversions were made
+    if (conversionsCount > 0) {
+        showConversionNotification(mode);
+    }
+
+    return conversionsCount;
 }
 
 function resetConversions() {
@@ -124,6 +134,90 @@ function resetConversions() {
     document.body.normalize();
 }
 
+// --- Notification Banner ---
+
+function showConversionNotification(mode) {
+    // Remove any existing notification
+    const existingNotification = document.getElementById('bimetric-notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+
+    const notification = document.createElement('div');
+    notification.id = 'bimetric-notification';
+    notification.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: #10b981;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 10000;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        max-width: 280px;
+        animation: slideInRight 0.3s ease-out;
+    `;
+
+    // Add icon
+    const icon = document.createElement('img');
+    icon.src = chrome.runtime.getURL('icons/icon48.png');
+    icon.style.cssText = 'width: 20px; height: 20px; flex-shrink: 0;';
+    notification.appendChild(icon);
+
+    // Add text based on conversion mode
+    const text = document.createElement('span');
+    if (mode === 'metric_to_imperial') {
+        text.textContent = 'Metric units found and converted.';
+    } else {
+        text.textContent = 'Imperial units found and converted.';
+    }
+    notification.appendChild(text);
+
+    document.body.appendChild(notification);
+
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.style.animation = 'slideOutRight 0.3s ease-out';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        }
+    }, 4000);
+}
+
+// --- Auto-conversion on page load ---
+
+function autoConvertOnLoad() {
+    chrome.storage.sync.get(['conversionMode', 'autoConvert'], (result) => {
+        const autoConvert = result.autoConvert !== undefined ? result.autoConvert : true;
+        
+        // Only auto-convert if the setting is enabled
+        if (autoConvert) {
+            const mode = result.conversionMode || 'metric_to_imperial';
+            // Wait a bit for page to fully load
+            setTimeout(() => {
+                performConversion(mode);
+            }, 1000);
+        }
+    });
+}
+
+// Run auto-conversion when page loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoConvertOnLoad);
+} else {
+    autoConvertOnLoad();
+}
+
 
 // --- Event Listener ---
 
@@ -131,8 +225,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "convert") {
         // Reset first to avoid duplicate conversions
         resetConversions();
-        performConversion(request.mode);
-        sendResponse({status: "conversion done"});
+        const conversionsCount = performConversion(request.mode);
+        sendResponse({status: "conversion done", count: conversionsCount});
     } else if (request.action === "reset") {
         resetConversions();
         sendResponse({status: "reset done"});

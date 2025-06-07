@@ -1,0 +1,273 @@
+/* popup-styles.css - Popup-specific styles */
+
+/* Popup container and layout */
+.bimetric-popup {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    width: 250px;
+    background-color: #f3f4f6;
+    margin: 0;
+    padding: 16px;
+    position: relative;
+    z-index: 10001;
+}
+
+.bimetric-popup .flex {
+    display: flex;
+}
+
+.bimetric-popup .items-center {
+    align-items: center;
+}
+
+.bimetric-popup .justify-between {
+    justify-content: space-between;
+}
+
+.bimetric-popup .text-right {
+    text-align: right;
+}
+
+.bimetric-popup .justify-end {
+    justify-content: flex-end;
+}
+
+.bimetric-popup .mb-4 {
+    margin-bottom: 16px;
+}
+
+.bimetric-popup .mt-2 {
+    margin-top: 8px;
+}
+
+.bimetric-popup .mt-3 {
+    margin-top: 12px;
+}
+
+.bimetric-popup .mt-4 {
+    margin-top: 16px;
+}
+
+.bimetric-popup .mt-6 {
+    margin-top: 24px;
+}
+
+.bimetric-popup .ml-1 {
+    margin-left: 4px;
+}
+
+.bimetric-popup .text-lg {
+    font-size: 18px;
+    line-height: 28px;
+}
+
+.bimetric-popup .text-sm {
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.bimetric-popup .text-xs {
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.bimetric-popup .font-bold {
+    font-weight: 700;
+}
+
+.bimetric-popup .font-semibold {
+    font-weight: 600;
+}
+
+.bimetric-popup .text-gray-600 {
+    color: #4b5563;
+}
+
+.bimetric-popup .text-gray-700 {
+    color: #374151;
+}
+
+.bimetric-popup .text-gray-800 {
+    color: #1f2937;
+}
+
+.bimetric-popup .text-white {
+    color: #ffffff;
+}
+
+.bimetric-popup .w-full {
+    width: 100%;
+}
+
+.bimetric-popup .w-8 {
+    width: 32px;
+}
+
+.bimetric-popup .h-8 {
+    height: 32px;
+}
+
+.bimetric-popup .p-2 {
+    padding: 8px;
+}
+
+.bimetric-popup .p-3 {
+    padding: 12px;
+}
+
+.bimetric-popup .py-2 {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.bimetric-popup .px-4 {
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+.bimetric-popup .space-y-3 > * + * {
+    margin-top: 12px;
+}
+
+.bimetric-popup .border {
+    border-width: 1px;
+}
+
+.bimetric-popup .border-gray-200 {
+    border-color: #e5e7eb;
+}
+
+.bimetric-popup .border-gray-300 {
+    border-color: #d1d5db;
+}
+
+.bimetric-popup .rounded-md {
+    border-radius: 6px;
+}
+
+.bimetric-popup .shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.bimetric-popup .shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.bimetric-popup .bg-blue-600 {
+    background-color: #2563eb;
+}
+
+.bimetric-popup .bg-gray-200 {
+    background-color: #e5e7eb;
+}
+
+.bimetric-popup .bg-white {
+    background-color: #ffffff;
+}
+
+.bimetric-popup .focus-ring:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #3b82f6;
+    border-color: #3b82f6;
+}
+
+.bimetric-popup .transition {
+    transition-property: all;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bimetric-popup .hover-bg-blue-700:hover {
+    background-color: #1d4ed8;
+}
+
+.bimetric-popup .hover-bg-gray-300:hover {
+    background-color: #d1d5db;
+}
+
+.bimetric-popup button {
+    border: none;
+    cursor: pointer;
+}
+
+.bimetric-popup select {
+    background-color: white;
+    border: 1px solid #d1d5db;
+}
+
+/* Text link button styling */
+.bimetric-popup .text-link {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    font: inherit;
+    color: #4b5563;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.bimetric-popup .text-link:hover .settings-text {
+    color: #374151;
+    text-decoration: underline;
+}
+
+/* Horizontal rule styling */
+.bimetric-popup .settings-hr {
+    border: none;
+    height: 1px;
+    background-color: #e5e7eb;
+    margin: 16px 0 12px 0;
+}
+
+/* Settings Section Styles */
+.bimetric-popup .settings-collapsed {
+    display: none;
+}
+
+.bimetric-popup .settings-expanded {
+    display: block;
+}
+
+/* Toggle Switch Styles */
+.bimetric-popup .toggle-bg {
+    background-color: #e5e7eb;
+    cursor: pointer;
+    position: relative;
+    width: 44px;
+    height: 24px;
+    border-radius: 12px;
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+    transition: background-color 150ms;
+}
+
+.bimetric-popup .toggle-bg.active {
+    background-color: #3b82f6;
+}
+
+.bimetric-popup .toggle-dot {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 16px;
+    height: 16px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease;
+    cursor: pointer;
+}
+
+.bimetric-popup .toggle-dot.active {
+    transform: translateX(14px);
+}
+
+.bimetric-popup .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
