@@ -170,6 +170,41 @@ tests/
 └── debug-test.js     # Regex pattern testing script
 ```
 
+### Building and Packaging
+
+The project includes multiple build scripts for creating distribution packages:
+
+### Quick Build Commands
+```bash
+# Build both ZIP and CRX files
+./build.sh
+# or
+make build
+
+# Build only ZIP file (for Chrome Web Store)
+make build-zip
+
+# Build only CRX file (for manual distribution)  
+make build-crx
+
+# Clean build artifacts
+make clean
+```
+
+### Build Outputs
+All builds create files in the `dist/` directory:
+- **`bimetric-inline-converter-{version}.zip`** - For Chrome Web Store submission
+- **`bimetric-inline-converter-{version}.crx`** - For manual installation/distribution
+
+The version number is automatically extracted from `src/manifest.json`.
+
+### Requirements
+- **ZIP creation**: No additional requirements
+- **CRX creation**: Requires Google Chrome/Chromium and private key (`keys/bimetric-inline-converter.pem`)
+- **Node.js builds**: Requires Node.js 12+ (dependencies auto-install)
+
+For detailed build instructions, see [BUILD.md](BUILD.md).
+
 ### Testing
 1. Load the extension in developer mode
 2. Open `tests/test.html` in Chrome to test various unit measurements
