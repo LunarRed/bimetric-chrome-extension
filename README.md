@@ -13,10 +13,15 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
   - **Weight**: g, kg ↔ oz, lb  
   - **Volume**: ml, l ↔ fl oz, gal
   - **Temperature**: °C ↔ °F
+  - **Acceleration**: m/s², m/s^2, m/s2 ↔ ft/s², ft/s^2, ft/s2
 - **Smart Detection**: Recognizes various unit formats and abbreviations including:
   - Dimension patterns (e.g., "15.7 x 11.8 inch")  
   - Quote notation for feet/inches (e.g., 6'2" or Georgetown 63" lamp)
+  - Acceleration patterns (e.g., "9.8 m/s²", Wikipedia-style "9.8 m/s<sup>2</sup>")
   - Smart unit scaling (1524mm → 152.4cm, 2000g → 2kg)
+- **Enhanced Filtering**: 
+  - Prevents false conversions of social media timestamps ("1m ago", "posted 5m")
+  - Excludes financial/statistical "M" representations ("$5M", "10M people")
 - **Customizable Notifications**: 
   - 80% transparent notifications with backdrop blur
   - Adjustable duration (1-10 seconds)
@@ -61,6 +66,7 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 - 15.7 x 11.8 inch → 15.7 x 11.8 inch *(398.78 x 299.72 mm)*
 - 500 ml → 500 ml *(16.91 fl oz)*
 - 25°C → 25°C *(77°F)*
+- 9.8 m/s² → 9.8 m/s² *(32.15 ft/s²)*
 
 **Imperial to Metric:**
 - 50 mph → 50 mph *(80.45 km/h)*
@@ -70,6 +76,7 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 - 40 x 30 cm → 40 x 30 cm *(15.75 x 11.81 in)*
 - 1 gallon → 1 gallon *(3.79 l)*
 - 72°F → 72°F *(22°C)*
+- 32.2 ft/s² → 32.2 ft/s² *(9.82 m/s²)*
 
 ## Supported Units
 
@@ -97,6 +104,11 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 | Metric | Imperial |
 |--------|----------|
 | °C (Celsius) | °F (Fahrenheit) |
+
+### Acceleration
+| Metric | Imperial |
+|--------|----------|
+| m/s² (meters per second squared) | ft/s² (feet per second squared) |
 
 ## Technical Details
 
@@ -169,6 +181,12 @@ MIT License - see LICENSE file for details
 - **Permission Optimization**: Removed unused `scripting` permission for Chrome Web Store compliance
 - **Minimal Permissions**: Now only requests essential permissions (`storage`, `activeTab`)
 - **Improved Security**: Reduces extension attack surface by removing unnecessary permissions
+- **Enhanced Filtering**: Added intelligent filtering to prevent false positive conversions
+  - Social media timestamps (e.g., "1m ago", "posted 5m") are now excluded from conversion
+  - Financial/statistical "M" representations (e.g., "$5M", "10M people") are properly handled
+- **Acceleration Conversions**: Added support for acceleration units (m/s², ft/s²)
+  - Handles multiple formats: m/s², m/s^2, m/s2, ft/s², ft/s^2, ft/s2
+  - Supports Wikipedia-style HTML patterns: "9.8 m/s<sup>2</sup>"
 
 ### v1.2.0
 - **Quote Mark Support**: Added recognition for ' (feet) and " (inches) notation

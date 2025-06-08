@@ -13,6 +13,11 @@ const conversions = {
     ml: (val) => ({ value: val / 29.574, unit: 'fl oz' }),
     l: (val) => ({ value: val / 3.785, unit: 'gal' }),
     '°c': (val) => ({ value: (val * 9/5) + 32, unit: '°F' }),
+    
+    // Acceleration conversions
+    'm/s²': (val) => ({ value: val * 3.281, unit: 'ft/s²' }),
+    'm/s^2': (val) => ({ value: val * 3.281, unit: 'ft/s²' }),
+    'm/s2': (val) => ({ value: val * 3.281, unit: 'ft/s²' }),
 
     // Imperial to Metric with smart unit scaling
     in: (val) => {
@@ -54,6 +59,11 @@ const conversions = {
     },
     gal: (val) => ({ value: val * 3.785, unit: 'l' }),
     '°f': (val) => ({ value: (val - 32) * 5/9, unit: '°C' }),
+    
+    // Imperial to Metric acceleration conversions
+    'ft/s²': (val) => ({ value: val / 3.281, unit: 'm/s²' }),
+    'ft/s^2': (val) => ({ value: val / 3.281, unit: 'm/s²' }),
+    'ft/s2': (val) => ({ value: val / 3.281, unit: 'm/s²' }),
 };
 
 // --- Regex Definitions ---
@@ -71,9 +81,15 @@ const patterns = {
         { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(km|kilometers?)\b/gi, unit: 'km', isDimension: true },
         
         // Regular single unit patterns
+        // Acceleration patterns (must come before generic "m" pattern)
+        { regex: /(\d*\.?\d+)\s*m\/s²\b/gi, unit: 'm/s²' },
+        { regex: /(\d*\.?\d+)\s*m\/s\^2\b/gi, unit: 'm/s^2' },
+        { regex: /(\d*\.?\d+)\s*m\/s2\b/gi, unit: 'm/s2' },
+        
+        // Length patterns
         { regex: /(\d*\.?\d+)\s*(mm|millimeters?)\b/gi, unit: 'mm' },
         { regex: /(\d*\.?\d+)\s*(cm|centimeters?)\b/gi, unit: 'cm' },
-        { regex: /(\d*\.?\d+)\s*(m|meters?)\b/gi, unit: 'm' },
+        { regex: /(\d*\.?\d+)\s*(m|meters?)(?!\s*\/s)\b/gi, unit: 'm' },
         { regex: /(\d*\.?\d+)\s*(km|kilometers?)\b/gi, unit: 'km' },
         { regex: /(\d*\.?\d+)\s*(g|grams?)\b/gi, unit: 'g' },
         { regex: /(\d*\.?\d+)\s*(kg|kilograms?)\b/gi, unit: 'kg' },
@@ -98,11 +114,16 @@ const patterns = {
         { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(yd|yards?)\b/gi, unit: 'yd', isDimension: true },
         
         // Regular single unit patterns
+        // Acceleration patterns (must come before generic "ft" pattern)
+        { regex: /(\d*\.?\d+)\s*ft\/s²\b/gi, unit: 'ft/s²' },
+        { regex: /(\d*\.?\d+)\s*ft\/s\^2\b/gi, unit: 'ft/s^2' },
+        { regex: /(\d*\.?\d+)\s*ft\/s2\b/gi, unit: 'ft/s2' },
+        
         // Quote-based patterns - handle quotes directly after numbers
         { regex: /(\d*\.?\d+)"/g, unit: 'in' },  // Double quote " = inches
         { regex: /(\d*\.?\d+)'(?!")/g, unit: 'ft' }, // Single quote ' = feet (but not if followed by ")
         { regex: /(\d*\.?\d+)\s*(in|inch|inches)\b/gi, unit: 'in' },
-        { regex: /(\d*\.?\d+)\s*(ft|foot|feet)\b/gi, unit: 'ft' },
+        { regex: /(\d*\.?\d+)\s*(ft|foot|feet)(?!\s*\/s)\b/gi, unit: 'ft' },
         { regex: /(\d*\.?\d+)\s*(yd|yards?)\b/gi, unit: 'yd' },
         { regex: /(\d*\.?\d+)\s*(mi|miles?)\b/gi, unit: 'mi' },
         { regex: /(\d*\.?\d+)\s*(oz|ounces?)\b/gi, unit: 'oz' },
@@ -114,6 +135,113 @@ const patterns = {
 };
 
 const MARK_TAG_CLASS = 'unit-converter-highlight';
+
+// --- Helper Functions ---
+
+function isTimestampElement(textNode) {
+    // Check if the text node contains timestamp patterns (e.g., "7m ago", "posted 5m", "reposted 10m ago")
+    const text = textNode.nodeValue.trim();
+    const timestampPatterns = [
+        /^\d+m$/,                           // Standalone: "7m"
+        /\b\d+m\s+ago\b/,                   // Time ago: "7m ago"
+        /\b(?:posted|reposted|updated|edited|shared|liked|commented|replied)\s+\d+m(?:\s+ago)?\b/,  // Social actions
+        /\b(?:last\s+seen|active|online)\s+\d+m(?:\s+ago)?\b/,  // Activity status
+        /\b\d+m\s+(?:ago|later|before|after)\b/  // General time references
+    ];
+    
+    return timestampPatterns.some(pattern => pattern.test(text));
+}
+
+// Check if text contains "M" representing millions (e.g., "$5M", "10M people", "€2M")
+function containsMillionsSuffix(text) {
+    // Pattern to match numbers followed by "M" in financial/statistical contexts
+    // Covers: currency + numbers + M, or numbers + M + common descriptive words
+    const millionsPatterns = [
+        /[$€£¥₹₽¢]\s*\d+\.?\d*\s*M\b/i,  // Currency symbols: $5M, €10M, £2.5M
+        /\d+\.?\d*\s*M\s+(?:people|users|dollars|euros|pounds|viewers|subscribers|followers|inhabitants|residents|population|budget|revenue|profit|sales|market|cap|valuation|funding|investment|votes|shares|downloads|views|members|employees|customers|visitors|students|records|accounts)\b/i,  // Common contexts
+        /\b(?:worth|valued?|budget|revenue|profit|sales|market|funding|investment)\s+[$€£¥₹₽¢]?\s*\d+\.?\d*\s*M\b/i  // Financial contexts before the amount
+    ];
+    
+    return millionsPatterns.some(pattern => pattern.test(text));
+}
+
+// Function to handle HTML split acceleration patterns like "9.8 m/s" + <sup>2</sup>
+function processAccelerationSplitPatterns(mode) {
+    if (mode === 'off') return 0;
+    
+    let conversionsCount = 0;
+    
+    // Look for all <sup> elements containing "2"
+    const supElements = document.querySelectorAll('sup');
+    
+    supElements.forEach(supElement => {
+        if (supElement.textContent.trim() === '2') {
+            // Check if this sup element is preceded by "m/s" or "ft/s" pattern
+            let prevNode = supElement.previousSibling;
+            
+            // Go back through previous siblings to find text nodes
+            while (prevNode && prevNode.nodeType !== Node.TEXT_NODE) {
+                prevNode = prevNode.previousSibling;
+            }
+            
+            if (prevNode && prevNode.nodeType === Node.TEXT_NODE) {
+                const text = prevNode.nodeValue;
+                
+                // Check for metric pattern (m/s) when in metric_to_imperial mode
+                if (mode === 'metric_to_imperial') {
+                    const metricMatch = text.match(/(.*?)(\d+\.?\d*)\s*m\/s\s*$/);
+                    if (metricMatch) {
+                        const value = parseFloat(metricMatch[2]);
+                        if (!isNaN(value)) {
+                            const conversionFn = conversions['m/s²'];
+                            if (conversionFn) {
+                                const { value: convertedValue, unit: convertedUnit } = conversionFn(value);
+                                const formattedValue = Number(convertedValue.toFixed(2));
+                                
+                                // Create the conversion mark
+                                const conversionMark = document.createElement('mark');
+                                conversionMark.className = MARK_TAG_CLASS;
+                                conversionMark.textContent = `(${formattedValue} ${convertedUnit})`;
+                                
+                                // Insert the conversion mark right after the <sup> element
+                                supElement.parentNode.insertBefore(conversionMark, supElement.nextSibling);
+                                
+                                conversionsCount++;
+                            }
+                        }
+                    }
+                }
+                
+                // Check for imperial pattern (ft/s) when in imperial_to_metric mode
+                if (mode === 'imperial_to_metric') {
+                    const imperialMatch = text.match(/(.*?)(\d+\.?\d*)\s*ft\/s\s*$/);
+                    if (imperialMatch) {
+                        const value = parseFloat(imperialMatch[2]);
+                        if (!isNaN(value)) {
+                            const conversionFn = conversions['ft/s²'];
+                            if (conversionFn) {
+                                const { value: convertedValue, unit: convertedUnit } = conversionFn(value);
+                                const formattedValue = Number(convertedValue.toFixed(2));
+                                
+                                // Create the conversion mark
+                                const conversionMark = document.createElement('mark');
+                                conversionMark.className = MARK_TAG_CLASS;
+                                conversionMark.textContent = `(${formattedValue} ${convertedUnit})`;
+                                
+                                // Insert the conversion mark right after the <sup> element
+                                supElement.parentNode.insertBefore(conversionMark, supElement.nextSibling);
+                                
+                                conversionsCount++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    return conversionsCount;
+}
 
 // --- DOM Manipulation ---
 
@@ -127,6 +255,14 @@ function performConversion(mode) {
     // First, collect all text nodes to avoid issues with live DOM modification
     while (textNode = walker.nextNode()) {
         if (textNode.parentElement.closest(`.${MARK_TAG_CLASS}, script, style, noscript`)) {
+            continue;
+        }
+        // Skip timestamp elements (e.g., "1m", "41m" for social media timestamps)
+        if (isTimestampElement(textNode)) {
+            continue;
+        }
+        // Skip text containing capital "M" representing millions (e.g., "$5M", "10M people")
+        if (containsMillionsSuffix(textNode.nodeValue)) {
             continue;
         }
         nodesToProcess.push(textNode);
@@ -257,6 +393,9 @@ function performConversion(mode) {
             node.parentNode.replaceChild(newElement, node);
         }
     }
+
+    // Process HTML split acceleration patterns (e.g., "9.8 m/s" + <sup>2</sup>)
+    conversionsCount += processAccelerationSplitPatterns(mode);
 
     // Show notification banner if conversions were made
     if (conversionsCount > 0) {
