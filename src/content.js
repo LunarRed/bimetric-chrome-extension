@@ -84,6 +84,16 @@ const patterns = {
         { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(km|kilometers?)\b/gi, unit: 'km', isDimension: true },
         { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(km|kilometers?)\b/gi, unit: 'km', isDimension: true },
         
+        // Range patterns (process these with dimension patterns)
+        { regex: /(\d*\.?\d+)\s*-\s*(\d*\.?\d+)\s*(mm|millimeters?)\b/gi, unit: 'mm', isDimension: true, isRange: true },
+        { regex: /(\d*\.?\d+)\s*-\s*(\d*\.?\d+)\s*(cm|centimeters?)\b/gi, unit: 'cm', isDimension: true, isRange: true },
+        { regex: /(\d*\.?\d+)\s*-\s*(\d*\.?\d+)\s*(m|meters?)(?!\s*\/s)\b/gi, unit: 'm', isDimension: true, isRange: true },
+        { regex: /(\d*\.?\d+)\s*-\s*(\d*\.?\d+)\s*(km|kilometers?)\b/gi, unit: 'km', isDimension: true, isRange: true },
+        { regex: /(\d*\.?\d+)\s*-\s*(\d*\.?\d+)\s*(g|grams?)\b/gi, unit: 'g', isDimension: true, isRange: true },
+        { regex: /(\d*\.?\d+)\s*-\s*(\d*\.?\d+)\s*(kg|kilograms?)\b/gi, unit: 'kg', isDimension: true, isRange: true },
+        { regex: /(\d*\.?\d+)\s*-\s*(\d*\.?\d+)\s*(ml|milliliters?)\b/gi, unit: 'ml', isDimension: true, isRange: true },
+        { regex: /(\d*\.?\d+)\s*-\s*(\d*\.?\d+)\s*(l|liters?)\b/gi, unit: 'l', isDimension: true, isRange: true },
+        
         // Regular single unit patterns
         // Acceleration patterns (must come before generic "m" pattern)
         { regex: /(\d*\.?\d+)\s*m\/s²\b/gi, unit: 'm/s²' },
@@ -102,7 +112,8 @@ const patterns = {
         { regex: /(-?\d*\.?\d+)\s*°\s*[cC]\b/g, unit: '°c' },
         
         // Ambiguous temperature pattern - must be processed after explicit temperature patterns
-        { regex: /(-?\d*\.?\d+)\s*[ºo°](?!\w)/g, unit: '°_metric', requiresSetting: 'convertAmbiguousTemperatures' }
+        // Requires space (or space+hyphen) before the number to avoid false matches like "GPT-4o"
+        { regex: /(?:^|\s)(-?\d*\.?\d+)\s*[ºo°](?!\w)/g, unit: '°_metric', requiresSetting: 'convertAmbiguousTemperatures' }
     ],
     imperial_to_metric: [
         // Dimension patterns (process these first)
@@ -119,6 +130,16 @@ const patterns = {
         { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(ft|foot|feet)\b/gi, unit: 'ft', isDimension: true },
         { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(yd|yards?)\b/gi, unit: 'yd', isDimension: true },
         { regex: /(\d*\.?\d+)\s*x\s*(\d*\.?\d+)\s*(yd|yards?)\b/gi, unit: 'yd', isDimension: true },
+        
+        // Range patterns (process these with dimension patterns)
+        { regex: /(\d*\.?\d+)\s*-\s*(\d*\.?\d+)\s*(in|inch|inches)\b/gi, unit: 'in', isDimension: true, isRange: true },
+        { regex: /(\d*\.?\d+)\s*-\s*(\d*\.?\d+)\s*(ft|foot|feet)(?!\s*\/s)\b/gi, unit: 'ft', isDimension: true, isRange: true },
+        { regex: /(\d*\.?\d+)\s*-\s*(\d*\.?\d+)\s*(yd|yards?)\b/gi, unit: 'yd', isDimension: true, isRange: true },
+        { regex: /(\d*\.?\d+)\s*-\s*(\d*\.?\d+)\s*(mi|miles?)\b/gi, unit: 'mi', isDimension: true, isRange: true },
+        { regex: /(\d*\.?\d+)\s*-\s*(\d*\.?\d+)\s*(oz|ounces?)\b/gi, unit: 'oz', isDimension: true, isRange: true },
+        { regex: /(\d*\.?\d+)\s*-\s*(\d*\.?\d+)\s*(lb|lbs|pounds?)\b/gi, unit: 'lb', isDimension: true, isRange: true },
+        { regex: /(\d*\.?\d+)\s*-\s*(\d*\.?\d+)\s*(fl oz|fluid ounces?)\b/gi, unit: 'fl oz', isDimension: true, isRange: true },
+        { regex: /(\d*\.?\d+)\s*-\s*(\d*\.?\d+)\s*(gal|gallons?)\b/gi, unit: 'gal', isDimension: true, isRange: true },
         
         // Regular single unit patterns
         // Acceleration patterns (must come before generic "ft" pattern)
@@ -140,7 +161,8 @@ const patterns = {
         { regex: /(-?\d*\.?\d+)\s*°\s*[fF]\b/g, unit: '°f' },
         
         // Ambiguous temperature pattern - must be processed after explicit temperature patterns
-        { regex: /(-?\d*\.?\d+)\s*[ºo°](?!\w)/g, unit: '°_imperial', requiresSetting: 'convertAmbiguousTemperatures' }
+        // Requires space (or space+hyphen) before the number to avoid false matches like "GPT-4o"
+        { regex: /(?:^|\s)(-?\d*\.?\d+)\s*[ºo°](?!\w)/g, unit: '°_imperial', requiresSetting: 'convertAmbiguousTemperatures' }
     ]
 };
 
@@ -156,7 +178,9 @@ function isTimestampElement(textNode) {
         /\b\d+m\s+ago\b/,                   // Time ago: "7m ago"
         /\b(?:posted|reposted|updated|edited|shared|liked|commented|replied)\s+\d+m(?:\s+ago)?\b/,  // Social actions
         /\b(?:last\s+seen|active|online)\s+\d+m(?:\s+ago)?\b/,  // Activity status
-        /\b\d+m\s+(?:ago|later|before|after)\b/  // General time references
+        /\b\d+m\s+(?:ago|later|before|after)\b/,  // General time references
+        /\bfor\s+(?:[1-9]\d*|0*[1-9]+)m\b/, // "for Xm" patterns (exclude "for 0m")
+        /\b(?:[1-9]\d*|0*[1-9]+)m\s+\d+s\b/ // "Xm Xs" minute-second patterns (exclude "0m Xs")
     ];
     
     return timestampPatterns.some(pattern => pattern.test(text));
@@ -342,6 +366,18 @@ function processConversionWithSettings(mode, convertAmbiguousTemps) {
                             }
                         }
                     }
+                } else if (p.isRange) {
+                    // Range patterns: "A-B unit" or "A - B unit"
+                    // Extract all numeric values (excluding unit, offset, and string)
+                    for (let i = 0; i < args.length - 3; i++) {
+                        if (args[i] !== undefined) {
+                            const val = parseFloat(args[i]);
+                            // Skip zero values except for temperature units
+                            if (!isNaN(val) && (val !== 0 || ['°c', '°f'].includes(p.unit.toLowerCase()))) {
+                                values.push(val);
+                            }
+                        }
+                    }
                 } else {
                     // Standard dimension patterns: "A x B unit" or "A x B x C unit"
                     // Extract all numeric values (excluding unit, offset, and string)
@@ -368,8 +404,15 @@ function processConversionWithSettings(mode, convertAmbiguousTemps) {
                     };
                 });
                 
-                // Build the converted dimension string
-                const convertedDimStr = convertedValues.map(v => v.converted).join(' x ') + ' ' + convertedValues[0].unit;
+                // Build the converted string based on pattern type
+                let convertedDimStr;
+                if (p.isRange) {
+                    // For range patterns, use " - " as separator
+                    convertedDimStr = convertedValues.map(v => v.converted).join(' - ') + ' ' + convertedValues[0].unit;
+                } else {
+                    // For dimension patterns, use " x " as separator
+                    convertedDimStr = convertedValues.map(v => v.converted).join(' x ') + ' ' + convertedValues[0].unit;
+                }
                 
                 hasChanged = true;
                 conversionsCount++;

@@ -16,14 +16,17 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
   - **Acceleration**: m/s², m/s^2, m/s2 ↔ ft/s², ft/s^2, ft/s2
 - **Smart Detection**: Recognizes various unit formats and abbreviations including:
   - Dimension patterns (e.g., "15.7 x 11.8 inch")  
+  - Range patterns (e.g., "1-2mm", "5 - 10 ft")
   - Quote notation for feet/inches (e.g., 6'2" or Georgetown 63" lamp)
   - Acceleration patterns (e.g., "9.8 m/s²", Wikipedia-style "9.8 m/s<sup>2</sup>")
   - Smart unit scaling (1524mm → 152.4cm, 2000g → 2kg)
 - **Enhanced Filtering**: 
   - Prevents false conversions of social media timestamps ("1m ago", "posted 5m")
+  - Excludes time duration patterns ("for 1m 31s", "thought for 2m")
   - Excludes financial/statistical "M" representations ("$5M", "10M people")
   - Ignores text inside links to prevent URL conversion errors
   - Skips zero values for non-temperature units (0°C and 0°F still convert)
+  - Prevents false temperature matches (e.g., "GPT-4o" is not parsed as "-4º")
 - **Smart Temperature Detection**: 
   - Converts temperatures with just degree symbols (e.g., "80º") by assuming the scale based on conversion mode
   - When enabled, "80º" becomes "80º (80°C = 176°F)" in metric-to-imperial mode
@@ -71,6 +74,7 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 - 152.4 cm → 152.4 cm *(5.00 ft)*
 - 1524 mm → 152.4 cm *(5.00 ft)* *[smart scaling]*
 - 15.7 x 11.8 inch → 15.7 x 11.8 inch *(398.78 x 299.72 mm)*
+- 1-2mm → 1-2mm *(0.04 - 0.08 in)* *[range pattern]*
 - 500 ml → 500 ml *(16.91 fl oz)*
 - 25°C → 25°C *(77°F)*
 - 0°C → 0°C *(32°F)* *[freezing point]*
@@ -83,6 +87,7 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 - 6'2" → 6'2" *(187.96 cm)*
 - Georgetown 63" lamp → Georgetown 63" *(160.02 cm)* lamp
 - 40 x 30 cm → 40 x 30 cm *(15.75 x 11.81 in)*
+- 5 - 10 ft → 5 - 10 ft *(1.52 - 3.05 m)* *[range pattern]*
 - 1 gallon → 1 gallon *(3.79 l)*
 - 72°F → 72°F *(22°C)*
 - 0°F → 0°F *(-17.78°C)* *[absolute reference]*
@@ -91,7 +96,9 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 
 **Filtering Examples (NOT converted):**
 - "Posted 5m ago" *(social media timestamp)*
+- "Thought for 1m 31s" *(time duration)*
 - "Company valued at $10M" *(financial context)*
+- "GPT-4o model" *(false temperature match)*
 - Links: [example.com/43Z0l](https://example.com/43Z0l) *(inside anchor tags)*
 - "Distance: 0 km" *(zero value for non-temperature)*
 
@@ -238,6 +245,21 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 MIT License - see LICENSE file for details
 
 ## Version History
+
+### v1.4.0 (Upcoming)
+- **Range Pattern Support**: Added intelligent recognition of range patterns
+  - Supports both "1-2mm" and "1 - 2mm" formats
+  - Converts ranges like "about 1-2mm higher" → "about 1-2mm *(0.04 - 0.08 in)* higher"
+  - Works with all supported units (metric and imperial)
+- **Enhanced Time Duration Filtering**: Improved filtering to prevent false conversions
+  - Added filtering for "for Xm" patterns (e.g., "thought for 1m")
+  - Added filtering for "Xm Xs" minute-second patterns (e.g., "1m 31s duration")
+  - Excludes zero values appropriately ("for 0m" ignored, "0m 30s" allowed)
+- **Improved Ambiguous Temperature Detection**: Enhanced pattern matching for temperature symbols
+  - Requires space or line start before numbers to prevent false matches
+  - Fixes issue where "GPT-4o" was incorrectly parsed as "-4º"
+  - Pattern: `(?:^|\s)(-?\d*\.?\d+)\s*[ºo°](?!\w)` ensures proper context
+- **Comprehensive Test Coverage**: Added extensive test cases for new filtering patterns
 
 ### v1.3.2
 - **Bug Fixes**: Fixed regex pattern matching for Unicode degree symbols

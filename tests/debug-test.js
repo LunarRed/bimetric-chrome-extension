@@ -1,8 +1,9 @@
 // Test the regex patterns for ambiguous temperatures (FINAL VERSION)
+// Also test new filtering patterns
 
 // Test patterns - using the fixed regex without word boundary issues
 const patterns = [
-    { regex: /(-?\d*\.?\d+)\s*[ºo°](?!\w)/g, unit: '°_metric' },
+    { regex: /(?:^|\s)(-?\d*\.?\d+)\s*[ºo°](?!\w)/g, unit: '°_metric' }, // Updated pattern
     { regex: /(-?\d*\.?\d+)\s*°\s*[cC]\b/g, unit: '°c' },
     { regex: /(-?\d*\.?\d+)\s*°\s*[fF]\b/g, unit: '°f' }
 ];
@@ -15,7 +16,9 @@ const testStrings = [
     "Water boils at 100°C",
     "Room temp: 72°F",
     "Negative temp: -10°",
-    "Edge case: 32º vs 32°F"
+    "Edge case: 32º vs 32°F",
+    "GPT-4o model",  // Should NOT match with new pattern
+    "System-4o version"  // Should NOT match with new pattern
 ];
 
 console.log("Testing regex patterns:");
