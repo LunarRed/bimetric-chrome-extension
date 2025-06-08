@@ -22,6 +22,8 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 - **Enhanced Filtering**: 
   - Prevents false conversions of social media timestamps ("1m ago", "posted 5m")
   - Excludes financial/statistical "M" representations ("$5M", "10M people")
+  - Ignores text inside links to prevent URL conversion errors
+  - Skips zero values for non-temperature units (0°C and 0°F still convert)
 - **Customizable Notifications**: 
   - 80% transparent notifications with backdrop blur
   - Adjustable duration (1-10 seconds)
@@ -66,6 +68,7 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 - 15.7 x 11.8 inch → 15.7 x 11.8 inch *(398.78 x 299.72 mm)*
 - 500 ml → 500 ml *(16.91 fl oz)*
 - 25°C → 25°C *(77°F)*
+- 0°C → 0°C *(32°F)* *[freezing point]*
 - 9.8 m/s² → 9.8 m/s² *(32.15 ft/s²)*
 
 **Imperial to Metric:**
@@ -76,7 +79,14 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 - 40 x 30 cm → 40 x 30 cm *(15.75 x 11.81 in)*
 - 1 gallon → 1 gallon *(3.79 l)*
 - 72°F → 72°F *(22°C)*
+- 0°F → 0°F *(-17.78°C)* *[absolute reference]*
 - 32.2 ft/s² → 32.2 ft/s² *(9.82 m/s²)*
+
+**Filtering Examples (NOT converted):**
+- "Posted 5m ago" *(social media timestamp)*
+- "Company valued at $10M" *(financial context)*
+- Links: [example.com/43Z0l](https://example.com/43Z0l) *(inside anchor tags)*
+- "Distance: 0 km" *(zero value for non-temperature)*
 
 ## Supported Units
 
@@ -121,6 +131,11 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 - **Overlap Prevention**: Prevents double conversion of dimension patterns
 - **Storage Integration**: Persists user preferences and settings
 - **Popup Interface**: Provides user controls and expandable settings panel
+- **Advanced Filtering**: 
+  - Excludes social media timestamps and financial contexts
+  - Ignores content inside anchor tags (`<a>` elements)
+  - Skips zero values for non-temperature measurements
+  - Handles HTML split patterns for scientific notation
 
 ### Permissions
 - `activeTab`: Access current webpage content for conversion
@@ -184,9 +199,14 @@ MIT License - see LICENSE file for details
 - **Enhanced Filtering**: Added intelligent filtering to prevent false positive conversions
   - Social media timestamps (e.g., "1m ago", "posted 5m") are now excluded from conversion
   - Financial/statistical "M" representations (e.g., "$5M", "10M people") are properly handled
+  - Text inside links (`<a>` tags) is excluded to prevent URL conversion errors
+  - Zero values are skipped for non-temperature units (0°C and 0°F still convert properly)
 - **Acceleration Conversions**: Added support for acceleration units (m/s², ft/s²)
   - Handles multiple formats: m/s², m/s^2, m/s2, ft/s², ft/s^2, ft/s2
   - Supports Wikipedia-style HTML patterns: "9.8 m/s<sup>2</sup>"
+- **Bug Fixes**: 
+  - Fixed HTML split pattern spacing issues
+  - Improved conversion accuracy for edge cases
 
 ### v1.2.0
 - **Quote Mark Support**: Added recognition for ' (feet) and " (inches) notation

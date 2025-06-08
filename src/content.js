@@ -192,7 +192,7 @@ function processAccelerationSplitPatterns(mode) {
                     const metricMatch = text.match(/(.*?)(\d+\.?\d*)\s*m\/s\s*$/);
                     if (metricMatch) {
                         const value = parseFloat(metricMatch[2]);
-                        if (!isNaN(value)) {
+                        if (!isNaN(value) && value !== 0) {
                             const conversionFn = conversions['m/s²'];
                             if (conversionFn) {
                                 const { value: convertedValue, unit: convertedUnit } = conversionFn(value);
@@ -217,7 +217,7 @@ function processAccelerationSplitPatterns(mode) {
                     const imperialMatch = text.match(/(.*?)(\d+\.?\d*)\s*ft\/s\s*$/);
                     if (imperialMatch) {
                         const value = parseFloat(imperialMatch[2]);
-                        if (!isNaN(value)) {
+                        if (!isNaN(value) && value !== 0) {
                             const conversionFn = conversions['ft/s²'];
                             if (conversionFn) {
                                 const { value: convertedValue, unit: convertedUnit } = conversionFn(value);
@@ -254,7 +254,7 @@ function performConversion(mode) {
     
     // First, collect all text nodes to avoid issues with live DOM modification
     while (textNode = walker.nextNode()) {
-        if (textNode.parentElement.closest(`.${MARK_TAG_CLASS}, script, style, noscript`)) {
+        if (textNode.parentElement.closest(`.${MARK_TAG_CLASS}, script, style, noscript, a`)) {
             continue;
         }
         // Skip timestamp elements (e.g., "1m", "41m" for social media timestamps)
@@ -312,7 +312,8 @@ function performConversion(mode) {
                     for (let i = 0; i < args.length - 2; i++) {
                         if (args[i] !== undefined && args[i] !== "") {
                             const val = parseFloat(args[i]);
-                            if (!isNaN(val)) {
+                            // Skip zero values except for temperature units
+                            if (!isNaN(val) && (val !== 0 || ['°c', '°f'].includes(p.unit.toLowerCase()))) {
                                 values.push(val);
                             }
                         }
@@ -323,7 +324,8 @@ function performConversion(mode) {
                     for (let i = 0; i < args.length - 3; i++) {
                         if (args[i] !== undefined) {
                             const val = parseFloat(args[i]);
-                            if (!isNaN(val)) {
+                            // Skip zero values except for temperature units
+                            if (!isNaN(val) && (val !== 0 || ['°c', '°f'].includes(p.unit.toLowerCase()))) {
                                 values.push(val);
                             }
                         }
@@ -376,7 +378,8 @@ function performConversion(mode) {
                 // Handle regular single value patterns
                 const valueStr = args[0];
                 const originalValue = parseFloat(valueStr);
-                if (isNaN(originalValue)) return match;
+                // Skip zero values except for temperature units
+                if (isNaN(originalValue) || (originalValue === 0 && !['°c', '°f'].includes(p.unit.toLowerCase()))) return match;
                 
                 const { value: convertedValue, unit: convertedUnit } = conversionFn(originalValue);
                 const formattedValue = Number(convertedValue.toFixed(2));
