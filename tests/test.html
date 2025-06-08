@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature Conversion Test</title>
+</head>
+<body>
+    <h1>Temperature Conversion Test</h1>
+    
+    <h2>Explicit Temperature Units (should convert normally)</h2>
+    <p>Today it's 25°C outside.</p>
+    <p>The water boils at 100°C.</p>
+    <p>Room temperature is about 72°F.</p>
+    <p>Freezing point is 32°F.</p>
+    
+    <h2>Ambiguous Temperature Units (should convert with assumption)</h2>
+    <p>The temperature today is 80°.</p>
+    <p>Simple test: 25º</p>
+    <p>Another test: 100o</p>
+    <p>Unicode test: 80°</p>
+    
+    <h2>Other Units (should convert normally)</h2>
+    <p>The distance is 5 km.</p>
+    <p>Weight: 70 kg.</p>
+    <p>Height: 6 ft.</p>
+    
+    <h2>Should NOT convert</h2>
+    <p>Posted 5m ago (timestamp)</p>
+    <p>The company is worth $10M (financial)</p>
+    <p>Link: <a href="https://example.com/80F">https://example.com/80F</a></p>
+</body>
+</html>
