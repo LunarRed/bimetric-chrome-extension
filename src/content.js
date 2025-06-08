@@ -60,6 +60,10 @@ const conversions = {
     gal: (val) => ({ value: val * 3.785, unit: 'l' }),
     '°f': (val) => ({ value: (val - 32) * 5/9, unit: '°C' }),
     
+    // Ambiguous temperature conversions (assumes source scale based on mode)
+    '°_metric': (val) => ({ value: (val * 9/5) + 32, unit: '°F' }), // Assume °C when converting metric to imperial
+    '°_imperial': (val) => ({ value: (val - 32) * 5/9, unit: '°C' }), // Assume °F when converting imperial to metric
+    
     // Imperial to Metric acceleration conversions
     'ft/s²': (val) => ({ value: val / 3.281, unit: 'm/s²' }),
     'ft/s^2': (val) => ({ value: val / 3.281, unit: 'm/s²' }),
@@ -95,7 +99,10 @@ const patterns = {
         { regex: /(\d*\.?\d+)\s*(kg|kilograms?)\b/gi, unit: 'kg' },
         { regex: /(\d*\.?\d+)\s*(ml|milliliters?)\b/gi, unit: 'ml' },
         { regex: /(\d*\.?\d+)\s*(l|liters?)\b/gi, unit: 'l' },
-        { regex: /(-?\d*\.?\d+)\s*°\s*[cC]\b/g, unit: '°c' }
+        { regex: /(-?\d*\.?\d+)\s*°\s*[cC]\b/g, unit: '°c' },
+        
+        // Ambiguous temperature pattern - must be processed after explicit temperature patterns
+        { regex: /(-?\d*\.?\d+)\s*[ºo°](?!\w)/g, unit: '°_metric', requiresSetting: 'convertAmbiguousTemperatures' }
     ],
     imperial_to_metric: [
         // Dimension patterns (process these first)
@@ -130,7 +137,10 @@ const patterns = {
         { regex: /(\d*\.?\d+)\s*(lb|lbs|pounds?)\b/gi, unit: 'lb' },
         { regex: /(\d*\.?\d+)\s*(fl oz|fluid ounces?)\b/gi, unit: 'fl oz' },
         { regex: /(\d*\.?\d+)\s*(gal|gallons?)\b/gi, unit: 'gal' },
-        { regex: /(-?\d*\.?\d+)\s*°\s*[fF]\b/g, unit: '°f' }
+        { regex: /(-?\d*\.?\d+)\s*°\s*[fF]\b/g, unit: '°f' },
+        
+        // Ambiguous temperature pattern - must be processed after explicit temperature patterns
+        { regex: /(-?\d*\.?\d+)\s*[ºo°](?!\w)/g, unit: '°_imperial', requiresSetting: 'convertAmbiguousTemperatures' }
     ]
 };
 
@@ -248,6 +258,14 @@ function processAccelerationSplitPatterns(mode) {
 function performConversion(mode) {
     if (mode === 'off') return;
     
+    // Get settings from storage
+    chrome.storage.sync.get(['convertAmbiguousTemps'], (result) => {
+        const convertAmbiguousTemps = result.convertAmbiguousTemps !== undefined ? result.convertAmbiguousTemps : true;
+        processConversionWithSettings(mode, convertAmbiguousTemps);
+    });
+}
+
+function processConversionWithSettings(mode, convertAmbiguousTemps) {
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
     let textNode;
     const nodesToProcess = [];
@@ -270,9 +288,15 @@ function performConversion(mode) {
 
     let conversionsCount = 0;
 
-    // Separate dimension patterns from regular patterns
+    // Separate dimension patterns from regular patterns, and filter by settings
     const dimensionPatterns = patterns[mode].filter(p => p.isDimension);
-    const regularPatterns = patterns[mode].filter(p => !p.isDimension);
+    const regularPatterns = patterns[mode].filter(p => !p.isDimension).filter(p => {
+        // Filter out patterns that require settings that are disabled
+        if (p.requiresSetting === 'convertAmbiguousTemperatures') {
+            return convertAmbiguousTemps;
+        }
+        return true;
+    });
 
     // Process collected nodes
     for (const node of nodesToProcess) {
@@ -373,16 +397,26 @@ function performConversion(mode) {
                 }
                 
                 const conversionFn = conversions[p.unit.toLowerCase()];
-                if (!conversionFn) return match;
+                if (!conversionFn) {
+                    return match;
+                }
 
                 // Handle regular single value patterns
                 const valueStr = args[0];
                 const originalValue = parseFloat(valueStr);
                 // Skip zero values except for temperature units
-                if (isNaN(originalValue) || (originalValue === 0 && !['°c', '°f'].includes(p.unit.toLowerCase()))) return match;
+                if (isNaN(originalValue) || (originalValue === 0 && !['°c', '°f', '°_metric', '°_imperial'].includes(p.unit.toLowerCase()))) return match;
                 
                 const { value: convertedValue, unit: convertedUnit } = conversionFn(originalValue);
                 const formattedValue = Number(convertedValue.toFixed(2));
+                
+                // Handle ambiguous temperature conversion with special formatting
+                if (p.unit === '°_metric' || p.unit === '°_imperial') {
+                    const assumedUnit = p.unit === '°_metric' ? '°C' : '°F';
+                    hasChanged = true;
+                    conversionsCount++;
+                    return `${match} <mark class="${MARK_TAG_CLASS}">(${originalValue}${assumedUnit} = ${formattedValue} ${convertedUnit})</mark>`;
+                }
                 
                 hasChanged = true;
                 conversionsCount++;
@@ -523,15 +557,16 @@ function showConversionNotification(mode) {
 // --- Auto-conversion on page load ---
 
 function autoConvertOnLoad() {
-    chrome.storage.sync.get(['conversionMode', 'autoConvert'], (result) => {
+    chrome.storage.sync.get(['conversionMode', 'autoConvert', 'convertAmbiguousTemps'], (result) => {
         const autoConvert = result.autoConvert !== undefined ? result.autoConvert : true;
         
         // Only auto-convert if the setting is enabled
         if (autoConvert) {
             const mode = result.conversionMode || 'metric_to_imperial';
+            const convertAmbiguousTemps = result.convertAmbiguousTemps !== undefined ? result.convertAmbiguousTemps : true;
             // Wait a bit for page to fully load
             setTimeout(() => {
-                performConversion(mode);
+                processConversionWithSettings(mode, convertAmbiguousTemps);
             }, 1000);
         }
     });
@@ -551,11 +586,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "convert") {
         // Reset first to avoid duplicate conversions
         resetConversions();
-        const conversionsCount = performConversion(request.mode);
-        sendResponse({status: "conversion done", count: conversionsCount});
+        
+        // Get settings and perform conversion asynchronously
+        chrome.storage.sync.get(['convertAmbiguousTemps'], (result) => {
+            const convertAmbiguousTemps = result.convertAmbiguousTemps !== undefined ? result.convertAmbiguousTemps : true;
+            const conversionsCount = processConversionWithSettings(request.mode, convertAmbiguousTemps);
+            sendResponse({status: "conversion done", count: conversionsCount});
+        });
+        
+        return true; // Indicates an asynchronous response
     } else if (request.action === "reset") {
         resetConversions();
         sendResponse({status: "reset done"});
     }
-    return true; // Indicates an asynchronous response
+    return true;
 });

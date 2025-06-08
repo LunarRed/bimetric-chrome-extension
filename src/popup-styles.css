@@ -260,6 +260,11 @@
     transform: translateX(14px);
 }
 
+/* Ensure temperature toggle moves the same distance */
+.bimetric-popup #tempToggleDot.active {
+    transform: translateX(14px);
+}
+
 .bimetric-popup .sr-only {
     position: absolute;
     width: 1px;

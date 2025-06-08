@@ -12,9 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleDot = document.querySelector('.toggle-dot');
     const notificationDurationSelect = document.getElementById('notificationDuration');
     const notificationSizeSelect = document.getElementById('notificationSize');
+    const convertAmbiguousTempsToggle = document.getElementById('convertAmbiguousTemps');
+    const tempToggleBg = document.getElementById('tempToggleBg');
+    const tempToggleDot = document.getElementById('tempToggleDot');
 
     // Load saved settings
-    chrome.storage.sync.get(['conversionMode', 'autoConvert', 'settingsExpanded', 'notificationDuration', 'notificationSize'], (result) => {
+    chrome.storage.sync.get(['conversionMode', 'autoConvert', 'settingsExpanded', 'notificationDuration', 'notificationSize', 'convertAmbiguousTemps'], (result) => {
         // Set conversion mode
         if (result.conversionMode) {
             modeSelect.value = result.conversionMode;
@@ -36,6 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Set notification size (defaults to normal)
         const notificationSize = result.notificationSize !== undefined ? result.notificationSize : 'normal';
         notificationSizeSelect.value = notificationSize;
+
+        // Set convertAmbiguousTemps toggle (defaults to true)
+        const convertAmbiguousTemps = result.convertAmbiguousTemps !== undefined ? result.convertAmbiguousTemps : true;
+        convertAmbiguousTempsToggle.checked = convertAmbiguousTemps;
+        updateTempToggleVisual(convertAmbiguousTemps);
 
         // Set settings expansion state (expanded first time, then collapsed)
         const settingsExpanded = result.settingsExpanded !== undefined ? result.settingsExpanded : true;
@@ -66,6 +74,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     toggleBg.addEventListener('click', handleToggleClick);
 
+    // Temperature setting toggle functionality
+    const handleTempToggleClick = (e) => {
+        e.preventDefault();
+        const newState = !convertAmbiguousTempsToggle.checked;
+        convertAmbiguousTempsToggle.checked = newState;
+        updateTempToggleVisual(newState);
+        chrome.storage.sync.set({ convertAmbiguousTemps: newState });
+    };
+
+    tempToggleBg.addEventListener('click', handleTempToggleClick);
+
     // Notification duration change handler
     notificationDurationSelect.addEventListener('change', () => {
         const duration = parseInt(notificationDurationSelect.value);
@@ -85,6 +104,16 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             toggleBg.classList.remove('active');
             toggleDot.classList.remove('active');
+        }
+    }
+
+    function updateTempToggleVisual(isActive) {
+        if (isActive) {
+            tempToggleBg.classList.add('active');
+            tempToggleDot.classList.add('active');
+        } else {
+            tempToggleBg.classList.remove('active');
+            tempToggleDot.classList.remove('active');
         }
     }
 

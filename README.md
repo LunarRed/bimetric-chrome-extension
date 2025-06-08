@@ -24,6 +24,10 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
   - Excludes financial/statistical "M" representations ("$5M", "10M people")
   - Ignores text inside links to prevent URL conversion errors
   - Skips zero values for non-temperature units (0°C and 0°F still convert)
+- **Smart Temperature Detection**: 
+  - Converts temperatures with just degree symbols (e.g., "80º") by assuming the scale based on conversion mode
+  - When enabled, "80º" becomes "80º (80°C = 176°F)" in metric-to-imperial mode
+  - When enabled, "80º" becomes "80º (80°F = 26.67°C)" in imperial-to-metric mode
 - **Customizable Notifications**: 
   - 80% transparent notifications with backdrop blur
   - Adjustable duration (1-10 seconds)
@@ -53,6 +57,7 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
    - **Off**: Disables conversion
 3. **Optional**: Adjust settings by clicking "Settings":
    - **Auto-convert**: Automatically convert units when pages load
+   - **Convert temperatures without explicit scale**: Assume temperature scale based on conversion mode for ambiguous temperatures (e.g., "80º")
    - **Notification duration**: Set how long conversion notifications appear (1-10 seconds)
    - **Notification size**: Choose between Normal and Smaller notification sizes
 4. Click "Convert This Page" to apply conversions to the current webpage
@@ -69,6 +74,7 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 - 500 ml → 500 ml *(16.91 fl oz)*
 - 25°C → 25°C *(77°F)*
 - 0°C → 0°C *(32°F)* *[freezing point]*
+- 80º → 80º *(80°C = 176°F)* *[ambiguous temperature - assumes Celsius]*
 - 9.8 m/s² → 9.8 m/s² *(32.15 ft/s²)*
 
 **Imperial to Metric:**
@@ -80,6 +86,7 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 - 1 gallon → 1 gallon *(3.79 l)*
 - 72°F → 72°F *(22°C)*
 - 0°F → 0°F *(-17.78°C)* *[absolute reference]*
+- 80º → 80º *(80°F = 26.67°C)* *[ambiguous temperature - assumes Fahrenheit]*
 - 32.2 ft/s² → 32.2 ft/s² *(9.82 m/s²)*
 
 **Filtering Examples (NOT converted):**
@@ -156,16 +163,21 @@ src/
     ├── icon16.png
     ├── icon48.png
     └── icon128.png
-```
 
-### Building
-No build process required - the extension runs directly from source files.
+tests/
+├── README.md          # Testing documentation
+├── test.html         # Test page with various unit measurements
+└── debug-test.js     # Regex pattern testing script
+```
 
 ### Testing
 1. Load the extension in developer mode
-2. Visit websites with various unit measurements
-3. Test different conversion modes
-4. Verify conversions are accurate and properly formatted
+2. Open `tests/test.html` in Chrome to test various unit measurements
+3. Use the extension popup to test different conversion modes
+4. Run `node tests/debug-test.js` to verify regex patterns work correctly
+5. Verify conversions are accurate and properly formatted
+
+For detailed testing information, see the [tests/README.md](tests/README.md) file.
 
 ## Privacy
 
@@ -191,6 +203,27 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 MIT License - see LICENSE file for details
 
 ## Version History
+
+### v1.3.2
+- **Bug Fixes**: Fixed regex pattern matching for Unicode degree symbols
+  - Replaced word boundary `\b` with negative lookahead `(?!\w)` to properly handle Unicode characters
+  - Resolved issues with degree symbol detection in various contexts
+- **Code Cleanup**: Removed debug logging from production code
+- **Project Reorganization**: Moved test files to dedicated `tests/` folder with comprehensive documentation
+
+### v1.3.1
+- **UI Improvements**: Fixed toggle switch alignment and label text
+- **Testing**: Added comprehensive test cases for ambiguous temperature conversion
+
+### v1.3.0
+- **Smart Temperature Detection**: Added support for ambiguous temperatures with just degree symbols
+  - New setting: "Convert temperatures without explicit scale" (enabled by default)
+  - "80º" now converts to "80º (80°C = 176°F)" in metric-to-imperial mode
+  - "80º" now converts to "80º (80°F = 26.67°C)" in imperial-to-metric mode
+  - Works with various degree symbols: º, °, o
+  - Smart pattern matching prevents conversion when followed by explicit C/F
+- **Enhanced User Interface**: Added toggle switch for the new temperature conversion setting
+- **Improved Pattern Recognition**: More precise temperature pattern matching to avoid conflicts
 
 ### v1.2.1
 - **Permission Optimization**: Removed unused `scripting` permission for Chrome Web Store compliance
