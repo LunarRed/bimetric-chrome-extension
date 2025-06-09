@@ -27,6 +27,7 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
   - Ignores text inside links to prevent URL conversion errors
   - Skips zero values for non-temperature units (0°C and 0°F still convert)
   - Prevents false temperature matches (e.g., "GPT-4o" is not parsed as "-4º")
+  - Excludes rotation/angle contexts (e.g., "rotated 90º", "angle of 30°", "tilt 15° for adjustment")
 - **Smart Temperature Detection**: 
   - Converts temperatures with just degree symbols (e.g., "80º") by assuming the scale based on conversion mode
   - When enabled, "80º" becomes "80º (80°C = 176°F)" in metric-to-imperial mode
@@ -99,6 +100,7 @@ A Chrome extension that automatically converts between metric and imperial (SAE)
 - "Thought for 1m 31s" *(time duration)*
 - "Company valued at $10M" *(financial context)*
 - "GPT-4o model" *(false temperature match)*
+- "rotated 90º" *(rotation/angle context)*
 - Links: [example.com/43Z0l](https://example.com/43Z0l) *(inside anchor tags)*
 - "Distance: 0 km" *(zero value for non-temperature)*
 
@@ -260,6 +262,10 @@ MIT License - see LICENSE file for details
   - Removed "o" character from temperature patterns to prevent false positives
   - Fixes issue where "GPT-4o" was incorrectly parsed as "-4º"
   - Pattern: `(?:^|\s)(-?\d*\.?\d+)\s*[º°](?!\w)` ensures proper context and prevents character model conflicts
+- **Rotation/Angle Context Filtering**: Added intelligent filtering to exclude degree symbols in rotation contexts
+  - Prevents false temperature conversions of patterns like "rotated 90º", "angle of 30°", "tilt 15° for adjustment"
+  - Recognizes rotation verbs, angle terminology, and directional indicators
+  - Maintains accurate temperature detection while eliminating geometric angle conflicts
 - **Comprehensive Test Coverage**: Added extensive test cases for new filtering patterns
 
 ### v1.3.2

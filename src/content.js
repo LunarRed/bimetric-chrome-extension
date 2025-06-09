@@ -201,6 +201,19 @@ function containsMillionsSuffix(text) {
     return millionsPatterns.some(pattern => pattern.test(text));
 }
 
+// Check if text contains degree symbols in rotation/angle contexts (e.g., "rotated 90º", "angle of 30°")
+function containsRotationAngle(text) {
+    // Pattern to match degree symbols used for angles/rotations rather than temperatures
+    const rotationPatterns = [
+        /\b(?:rotat(?:ed?|ing?)|turn(?:ed?|ing?)|spin(?:ning?)?|twist(?:ed?|ing?)|pivot(?:ed?|ing?)|flip(?:ped?|ping?)|tilt(?:ed?|ing?))\s+(?:by\s+)?\d*\.?\d+\s*[º°]/i,  // "rotated 90º", "turned 45°", "tilt by 15°"
+        /\b(?:angle|degrees?|rotation|turn|orientation|direction|heading|bearing)\s+(?:of\s+)?\d*\.?\d+\s*[º°]/i,  // "angle of 30º", "rotation 180°"
+        /\d*\.?\d+\s*[º°]\s+(?:angle|rotation|turn|clockwise|counterclockwise|counter-clockwise|for\s+\w+)/i,  // "90° angle", "180° rotation", "15° for adjustment"
+        /\b(?:at|by)\s+\d*\.?\d+\s*[º°](?!\s*[CF])\b/i  // "at 45º", "by 90°" (but not "at 90ºC")
+    ];
+    
+    return rotationPatterns.some(pattern => pattern.test(text));
+}
+
 // Function to handle HTML split acceleration patterns like "9.8 m/s" + <sup>2</sup>
 function processAccelerationSplitPatterns(mode) {
     if (mode === 'off') return 0;
@@ -307,6 +320,10 @@ function processConversionWithSettings(mode, convertAmbiguousTemps) {
         }
         // Skip text containing capital "M" representing millions (e.g., "$5M", "10M people")
         if (containsMillionsSuffix(textNode.nodeValue)) {
+            continue;
+        }
+        // Skip text containing degree symbols in rotation/angle contexts (e.g., "rotated 90º", "angle of 30°")
+        if (containsRotationAngle(textNode.nodeValue)) {
             continue;
         }
         nodesToProcess.push(textNode);
