@@ -36,15 +36,16 @@ timeTestStrings.forEach(str => {
     console.log(`"${str}" -> ${shouldFilter ? 'FILTER' : 'ALLOW'}`);
 });
 
-// Test ambiguous temperature patterns (with space requirement)
+// Test ambiguous temperature patterns (with space requirement, no 'o')
 const ambiguousPatterns = [
-    { regex: /(?:^|\s)(-?\d*\.?\d+)\s*[ºo°](?!\w)/g, unit: '°_metric' }
+    { regex: /(?:^|\s)(-?\d*\.?\d+)\s*[º°](?!\w)/g, unit: '°_metric' }
 ];
 
 const tempTestStrings = [
     "The temperature is 80º today", // Should match
     "It's 25° outside",             // Should match
     "GPT-4o model",                 // Should NOT match
+    "ChatGPT 4o",                   // Should NOT match
     "System-4o version",            // Should NOT match
     "Code-1o implementation",       // Should NOT match
     " 32º test",                    // Should match (starts with space)

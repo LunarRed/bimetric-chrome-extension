@@ -255,10 +255,11 @@ MIT License - see LICENSE file for details
   - Added filtering for "for Xm" patterns (e.g., "thought for 1m")
   - Added filtering for "Xm Xs" minute-second patterns (e.g., "1m 31s duration")
   - Excludes zero values appropriately ("for 0m" ignored, "0m 30s" allowed)
-- **Improved Ambiguous Temperature Detection**: Enhanced pattern matching for temperature symbols
+- **Refined Temperature Pattern Matching**: Enhanced and cleaned up temperature symbol recognition
   - Requires space or line start before numbers to prevent false matches
+  - Removed "o" character from temperature patterns to prevent false positives
   - Fixes issue where "GPT-4o" was incorrectly parsed as "-4º"
-  - Pattern: `(?:^|\s)(-?\d*\.?\d+)\s*[ºo°](?!\w)` ensures proper context
+  - Pattern: `(?:^|\s)(-?\d*\.?\d+)\s*[º°](?!\w)` ensures proper context and prevents character model conflicts
 - **Comprehensive Test Coverage**: Added extensive test cases for new filtering patterns
 
 ### v1.3.2
@@ -277,7 +278,7 @@ MIT License - see LICENSE file for details
   - New setting: "Convert temperatures without explicit scale" (enabled by default)
   - "80º" now converts to "80º (80°C = 176°F)" in metric-to-imperial mode
   - "80º" now converts to "80º (80°F = 26.67°C)" in imperial-to-metric mode
-  - Works with various degree symbols: º, °, o
+  - Works with various degree symbols: º, °
   - Smart pattern matching prevents conversion when followed by explicit C/F
 - **Enhanced User Interface**: Added toggle switch for the new temperature conversion setting
 - **Improved Pattern Recognition**: More precise temperature pattern matching to avoid conflicts

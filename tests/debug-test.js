@@ -3,7 +3,7 @@
 
 // Test patterns - using the fixed regex without word boundary issues
 const patterns = [
-    { regex: /(?:^|\s)(-?\d*\.?\d+)\s*[ºo°](?!\w)/g, unit: '°_metric' }, // Updated pattern
+    { regex: /(?:^|\s)(-?\d*\.?\d+)\s*[º°](?!\w)/g, unit: '°_metric' }, // Updated pattern (removed 'o')
     { regex: /(-?\d*\.?\d+)\s*°\s*[cC]\b/g, unit: '°c' },
     { regex: /(-?\d*\.?\d+)\s*°\s*[fF]\b/g, unit: '°f' }
 ];

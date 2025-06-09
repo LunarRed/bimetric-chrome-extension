@@ -113,7 +113,8 @@ const patterns = {
         
         // Ambiguous temperature pattern - must be processed after explicit temperature patterns
         // Requires space (or space+hyphen) before the number to avoid false matches like "GPT-4o"
-        { regex: /(?:^|\s)(-?\d*\.?\d+)\s*[ºo°](?!\w)/g, unit: '°_metric', requiresSetting: 'convertAmbiguousTemperatures' }
+        // Removed 'o' from pattern to prevent false matches with "4o", "1o" etc.
+        { regex: /(?:^|\s)(-?\d*\.?\d+)\s*[º°](?!\w)/g, unit: '°_metric', requiresSetting: 'convertAmbiguousTemperatures' }
     ],
     imperial_to_metric: [
         // Dimension patterns (process these first)
@@ -162,7 +163,8 @@ const patterns = {
         
         // Ambiguous temperature pattern - must be processed after explicit temperature patterns
         // Requires space (or space+hyphen) before the number to avoid false matches like "GPT-4o"
-        { regex: /(?:^|\s)(-?\d*\.?\d+)\s*[ºo°](?!\w)/g, unit: '°_imperial', requiresSetting: 'convertAmbiguousTemperatures' }
+        // Removed 'o' from pattern to prevent false matches with "4o", "1o" etc.
+        { regex: /(?:^|\s)(-?\d*\.?\d+)\s*[º°](?!\w)/g, unit: '°_imperial', requiresSetting: 'convertAmbiguousTemperatures' }
     ]
 };
 
